@@ -6,15 +6,31 @@ Sandbox Derby is a tool for running agents in clean, isolated, configurable cont
 
 A **sandbox** is a containerized workspace for a Claude agent. It starts clean. You decide what's on the workbench: which skills, which agent definitions, which team definitions — or none at all. The agent works inside the sandbox, and the sandbox walls are real. Permissions aren't a suggestion; they're structural. The agent can have broad autonomy because the isolation is physical, not behavioral.
 
-A **derby** is what happens when you line up multiple sandboxes, give them the same task with different loadouts, and let them race. Same hill, different cars. At the finish line, you compare: which sandbox produced the best result? Which skills helped? Which got in the way? The derby synthesizes those learnings and publishes them — typically as issues filed against the repos that define the tools under test.
+A **derby** is what happens when you line up multiple sandboxes, give them the same course with different loadouts, and let them race. Same hill, different cars. At the finish line, you compare: which sandbox produced the best result? Which skills helped? Which got in the way? The derby synthesizes those learnings and publishes them — initially as markdown reports, eventually as issues filed against the repos that define the tools under test.
 
-## Core Concepts
+## Canon
 
-**Sandbox.** A Docker container with a Claude agent inside it. Configurable crew. Mountable workspace. Two modes: interactive (SSH in and drive the agent like your own shell) or autonomous (hand it a task and walk away). No orchestration opinions. No lifecycle management. It runs, it works, it stops.
+These terms are the project's ontology. Use them consistently in code, docs, and conversation.
 
-**Crew.** The set of augmentations loaded into a sandbox: skills, agent definitions, team definitions. A sandbox can run bare — no crew at all — or fully loaded. The crew is the variable under test.
+**Sandbox.** A Docker container with a Claude agent inside it. Configurable loadout. Mountable workspace. Two modes: **drive** (interactive — SSH in and steer the agent) or **coast** (autonomous — hand it a task and walk away). No orchestration opinions. No lifecycle management. It runs, it works, it stops.
 
-**Derby.** A structured comparison. N sandboxes, same task, different crews. The derby runs them, captures their outputs, evaluates the results, and distills what worked into actionable findings. Those findings leave the system as issues, ready to be picked up by whatever process maintains the tools under test.
+**Loadout.** The set of augmentations loaded into a sandbox: skills, agent definitions, team definitions. A sandbox can run bare — no loadout at all — or fully loaded. The loadout is the variable under test.
+
+**Course.** The task given to a sandbox. Either a prompt string or a markdown file. In drive mode, the course may be irrelevant — the human is steering.
+
+**Derby.** A structured comparison. N sandboxes, varying loadouts and courses at the officiant's discretion. The derby runs them, captures their outputs, evaluates the results, and distills what worked into actionable findings.
+
+**Officiant.** The person designing and running a derby. They configure the knobs: loadouts, courses, replicas, models, and resource limits.
+
+**Drive.** Interactive mode. SSH into a sandbox and work with the agent directly.
+
+**Coast.** Autonomous mode. Hand the sandbox a course and let it run to completion.
+
+## Derby Patterns
+
+1. **Constant loadout, varying course.** Does this loadout generalize across different tasks?
+2. **Varying loadout, constant course.** Which loadout outperforms on this task?
+3. **Constant loadout, constant course, many replicas.** What's the baseline performance? What common pitfalls emerge from non-determinism?
 
 ## Evaluation
 
@@ -41,14 +57,15 @@ The officiant tunes knobs:
 
 - **Replicas.** How many sandboxes to run with the same loadout, to account for non-determinism and build statistical confidence.
 - **Model.** Which model powers the agent in each sandbox.
-- **Resources.** Container image and resource limits — test a crew with constrained resources vs. maximal resources.
-- **Crew.** The set of skills, agent definitions, and team definitions loaded into each sandbox.
+- **Resources.** Container image and resource limits — test a loadout with constrained resources vs. maximal resources.
+- **Loadout.** The set of skills, agent definitions, and team definitions loaded into each sandbox.
+- **Course.** The task assigned to each sandbox.
 
 ## Why This Exists
 
 Agent tooling — skills, agent definitions, team definitions — is only as good as the outcomes it produces. But today, improving that tooling is a manual, intuitive process. You write a skill, you use it, you notice it helped or didn't, you tweak it. That works at small scale but doesn't compound.
 
-Sandbox Derby makes the feedback loop explicit and repeatable. Define a task. Run it with different toolkits. Measure the results. Publish the learnings. Repeat. Over time, the tools get better — not because someone guessed what to improve, but because the evidence showed what worked.
+Sandbox Derby makes the feedback loop explicit and repeatable. Define a course. Run it with different loadouts. Measure the results. Publish the learnings. Repeat. Over time, the tools get better — not because someone guessed what to improve, but because the evidence showed what worked.
 
 The sandbox is the workspace. The derby is the experiment. Together, they turn agent tooling from craft into engineering.
 
