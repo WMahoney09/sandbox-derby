@@ -89,9 +89,14 @@ Shared setup script sourced by both drive and coast entrypoints. Responsibilitie
 1. Validate `ANTHROPIC_API_KEY` is set (exit with error if not)
 2. Configure git identity from `GIT_USER_NAME` / `GIT_USER_EMAIL` env vars (default to `Sandbox Derby Agent` / `sandbox-derby[bot]@noreply.github.com`)
 3. If `/home/agent/loadout/` exists and is non-empty, copy its contents into `/home/agent/.claude/`
-4. If `/home/agent/course/` exists, copy the course file into `/home/agent/workspace/`
 
-All copy operations are conditional — the script handles whatever is present without erroring on what's absent.
+Loadout copy is conditional — the script handles whatever is present without erroring on what's absent. Course copy-in is NOT handled here — it belongs in the coast entrypoint, after the workspace repo is cloned.
+
+#### Task 1.1.5: Write stub entrypoints for drive and coast
+Write minimal `entrypoint-drive.sh` and `entrypoint-coast.sh` stubs so the Dockerfile can COPY all entrypoint scripts from Phase 1 onward. The stubs source `entrypoint-common.sh` and exit with a "not yet implemented" message. Phases 2 and 3 replace the stub content with full implementations.
+
+#### Task 1.1.6: Write .gitignore
+At minimum: `.env`, `derby-results/`.
 
 ### Step 1.2: Base image
 
@@ -106,7 +111,7 @@ Document required env vars: `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`, `TARGET_REPO` (
 #### Task 1.3.1: Build image and confirm Claude Code is available
 Build the image as `sandbox-derby:latest`, run a throwaway container, verify `claude --version` works.
 
-**Critical files created:** `sandbox/Dockerfile`, `sandbox/entrypoint-common.sh`, `go.mod`, `.env.example`, `loadouts/bare/.gitkeep`, `loadouts/example/`, `courses/example.md`
+**Critical files created:** `sandbox/Dockerfile`, `sandbox/entrypoint-common.sh`, `sandbox/entrypoint-drive.sh` (stub), `sandbox/entrypoint-coast.sh` (stub), `go.mod`, `.env.example`, `.gitignore`, `loadouts/bare/.gitkeep`, `loadouts/example/`, `courses/example.md`
 
 **Gotchas:**
 - Claude Code install script may change — pin to a known-good approach or accept latest
@@ -120,8 +125,8 @@ Interactive sandbox mode. Build a container, keep it alive, SSH (docker exec) in
 
 ### Step 2.1: Drive entrypoint
 
-#### Task 2.1.1: Write entrypoint-drive.sh
-Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`). Print available tools and instructions. Keep container alive (`exec tail -f /dev/null` or `exec bash`).
+#### Task 2.1.1: Implement entrypoint-drive.sh
+Replace the Phase 1 stub with the full implementation. Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`). Print available tools and instructions. Keep container alive (`exec tail -f /dev/null` or `exec bash`).
 
 ### Step 2.2: Compose service for drive mode
 
@@ -154,8 +159,16 @@ Autonomous sandbox mode. Hand it a course and a workspace, it runs to completion
 
 ### Step 3.1: Coast entrypoint
 
-#### Task 3.1.1: Write entrypoint-coast.sh
-Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`). Validate `TARGET_REPO` is set (required for coast mode). Clone `TARGET_REPO` into `/home/agent/workspace`. The common script then copies the course file from staging (`/home/agent/course/`) into the workspace so the agent can modify it (e.g., check off TODOs). Read course content. Construct prompt and execute via `claude -p "<prompt>"`. Exit when done.
+#### Task 3.1.1: Implement entrypoint-coast.sh
+Replace the Phase 1 stub with the full implementation. Sequence:
+1. Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`)
+2. Validate `TARGET_REPO` is set (required for coast mode)
+3. Clone `TARGET_REPO` into `/home/agent/workspace`
+4. Copy course file from staging (`/home/agent/course/`) into the workspace (so the agent can modify it, e.g., check off TODOs)
+5. Read course content, construct prompt, execute via `claude -p "<prompt>"`
+6. Exit when done
+
+Note: course copy-in happens HERE (step 4), not in common.sh — the workspace must exist first.
 
 ### Step 3.2: Compose profile for coast mode
 
