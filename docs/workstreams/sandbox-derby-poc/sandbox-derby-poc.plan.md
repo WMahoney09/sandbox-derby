@@ -16,9 +16,10 @@ Build a proof-of-concept for Sandbox Derby: containerized Claude agent workspace
 
 **Key decisions:**
 - Approach C: Compose for sandbox lifecycle, Go for derby orchestration
-- Loadouts are volume-mounted for PoC (fast iteration, no rebuilds)
+- Loadouts are volume-mounted read-only to a staging path, then copied into `/home/agent/.claude/` by the entrypoint so Claude Code can write freely to `~/.claude/` at runtime
 - Workspace is a git repo cloned inside the container via TARGET_REPO env var
-- Course delivered as a mounted file read by the coast entrypoint
+- Course is always a local markdown file, mounted read-only to a staging path and copied into the workspace by the entrypoint (so the agent can check off TODOs as it works)
+- Model selection lives in the loadout (settings.json or agent definitions), not at the derby level
 - Derby config is YAML
 - Base image adapted from kubesat: `debian:bookworm-slim` + Claude Code CLI, gh, git, Node.js, Python, non-root `agent` user (no kubectl)
 
@@ -48,17 +49,20 @@ Create `go.mod` with module path `github.com/WMahoney09/sandbox-derby`.
 ```
 sandbox/
   Dockerfile
+  entrypoint-common.sh   # shared setup: env validation, git identity, loadout/course copy-in
   entrypoint-drive.sh
   entrypoint-coast.sh
 docker-compose.yml
 .env.example
 loadouts/
-  bare/            # empty loadout — baseline for comparison
+  bare/
+    .gitkeep       # empty loadout — baseline for comparison
   example/         # reference loadout — mirrors .claude/ structure exactly
     CLAUDE.md
     settings.json
     skills/
     agents/
+    teams/
 courses/
   example.md       # reference course
 derby/
@@ -72,15 +76,16 @@ docs/
 ```
 
 #### Task 1.1.3: Define canonical loadout structure
-A loadout directory mirrors `.claude/` exactly and is mounted as-is to `/home/agent/.claude/`:
+A loadout directory mirrors the `.claude/` structure. It is mounted read-only to a staging path (`/home/agent/loadout/`) and the entrypoint copies its contents into `/home/agent/.claude/` at startup. This lets Claude Code write freely to `~/.claude/` at runtime while keeping the loadout source clean.
 ```
 loadout-name/
   CLAUDE.md       # agent guidance and config
   settings.json   # Claude Code settings
   skills/         # skill definitions
   agents/         # custom sub-agent definitions
+  teams/          # team definitions
 ```
-All slots are optional. A bare loadout is an empty directory. No path translation — the loadout IS a `.claude/` directory.
+All slots are optional. A bare loadout is an empty directory (with `.gitkeep` for git tracking).
 
 ### Step 1.2: Base image
 
@@ -95,7 +100,7 @@ Document required env vars: `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`, `TARGET_REPO` (
 #### Task 1.3.1: Build image and confirm Claude Code is available
 Build the image, run a throwaway container, verify `claude --version` works.
 
-**Critical files created:** `sandbox/Dockerfile`, `go.mod`, `.env.example`, `loadouts/bare/`, `loadouts/example/`, `courses/example.md`
+**Critical files created:** `sandbox/Dockerfile`, `sandbox/entrypoint-common.sh`, `go.mod`, `.env.example`, `loadouts/bare/.gitkeep`, `loadouts/example/`, `courses/example.md`
 
 **Gotchas:**
 - Claude Code install script may change — pin to a known-good approach or accept latest
@@ -110,13 +115,13 @@ Interactive sandbox mode. Build a container, keep it alive, SSH (docker exec) in
 ### Step 2.1: Drive entrypoint
 
 #### Task 2.1.1: Write entrypoint-drive.sh
-Validate required env vars (`ANTHROPIC_API_KEY`). Configure git identity. Print available tools and instructions. Keep container alive (`exec tail -f /dev/null` or `exec bash`).
+Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`). Print available tools and instructions. Keep container alive (`exec tail -f /dev/null` or `exec bash`).
 
 ### Step 2.2: Compose service for drive mode
 
 #### Task 2.2.1: Write docker-compose.yml with drive service
 Service `sandbox` using the drive entrypoint. Volume mounts:
-- Loadout directory → `/home/agent/.claude/` (read-only)
+- Loadout directory → `/home/agent/loadout/` (read-only staging)
 - Workspace directory → `/home/agent/workspace` (if local mount desired)
 Env file: `.env`. Resource limits: 2 CPUs, 4GB memory.
 
@@ -129,9 +134,10 @@ In a brief README or usage doc: how to build, configure a loadout, start the san
 Start the sandbox, exec in, confirm Claude Code CLI works, confirm loadout files are visible at the expected paths, run a simple `claude` interaction.
 
 **Critical files created:** `sandbox/entrypoint-drive.sh`, `docker-compose.yml`
+**Also depends on:** `sandbox/entrypoint-common.sh` (created in Phase 1)
 
 **Gotchas:**
-- Loadout is mounted as a single volume to `/home/agent/.claude/`. If the base image bakes in any default `.claude/` contents, the mount will shadow them — the Dockerfile should not write to `.claude/` so the loadout mount is the sole source of truth.
+- The Dockerfile should not write to `/home/agent/.claude/` — the entrypoint populates it from the loadout staging path at runtime
 - TTY allocation: `docker exec -it` requires the container to have a TTY-compatible entrypoint
 
 ---
@@ -143,12 +149,12 @@ Autonomous sandbox mode. Hand it a course and a workspace, it runs to completion
 ### Step 3.1: Coast entrypoint
 
 #### Task 3.1.1: Write entrypoint-coast.sh
-Validate required env vars (`ANTHROPIC_API_KEY`). Configure git identity. Clone `TARGET_REPO` into `/home/agent/workspace` if set. Read course file. Construct prompt with course content and workspace context. Execute via `claude -p "<prompt>"`. Exit when done.
+Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`, copies course from staging to workspace). Clone `TARGET_REPO` into `/home/agent/workspace` if set. Copy course file from staging (`/home/agent/course/`) into workspace so the agent can modify it (e.g., check off TODOs). Read course content. Construct prompt and execute via `claude -p "<prompt>"`. Exit when done.
 
 ### Step 3.2: Compose profile for coast mode
 
 #### Task 3.2.1: Add coast service to docker-compose.yml
-Service `coast` using the coast entrypoint, activated via compose profile. Volume mounts: loadout (read-only), course file (read-only). Same env file and resource limits as drive.
+Service `coast` using the coast entrypoint, activated via compose profile. Volume mounts: loadout → `/home/agent/loadout/` (read-only staging), course file → `/home/agent/course/` (read-only staging). Same env file and resource limits as drive.
 
 ### Step 3.3: Output collection
 
@@ -178,6 +184,7 @@ Structured comparison across multiple sandboxes. A Go CLI reads a derby config, 
 #### Task 4.1.1: Define derby YAML schema
 ```yaml
 name: <string>
+concurrency: <int, optional — max parallel sandboxes, defaults to total sandbox count>
 workspace:
   repo: <git URL>
 entries:
@@ -185,11 +192,11 @@ entries:
     loadout: <path to loadout dir>
     course: <path to course file>
     replicas: <int, default 1>
-    model: <string, default from env>
     resources:
       cpus: <string, default "2">
       memory: <string, default "4g">
 ```
+Note: model selection lives in the loadout (settings.json or agent definitions), not at the derby level. `workspace.repo` is shared across all entries for PoC; per-entry repos are a known limitation to revisit later.
 
 #### Task 4.1.2: Write derby.yaml.example
 Demonstrate a comparison: same course, two loadouts, 2 replicas each.

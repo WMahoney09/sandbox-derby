@@ -81,4 +81,4 @@ The sandbox is the workspace. The derby is the experiment. Together, they turn a
 
 **Learnings leave the system as artifacts.** The derby doesn't apply its own findings. It publishes them — initially as markdown reports, eventually as issues or structured data — for external systems or humans to act on. This keeps the derby decoupled from whatever process consumes its output.
 
-**Earn complexity.** Start with one sandbox and a task. Add crew when you want to test crew. Run a derby when you want to compare. Each layer is optional and additive.
+**Earn complexity.** Start with one sandbox and a task. Add a loadout when you want to test a loadout. Run a derby when you want to compare. Each layer is optional and additive.
