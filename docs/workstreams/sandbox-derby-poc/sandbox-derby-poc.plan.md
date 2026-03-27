@@ -57,12 +57,9 @@ docker-compose.yml
 loadouts/
   bare/
     .gitkeep       # empty loadout — baseline for comparison
-  example/         # reference loadout — mirrors .claude/ structure exactly
-    CLAUDE.md
-    settings.json
-    skills/
-    agents/
-    teams/
+  example/         # reference loadout — mirrors .claude/ structure
+    CLAUDE.md      # example agent guidance
+    settings.json  # example settings
 courses/
   example.md       # reference course
 derby/
@@ -87,10 +84,19 @@ loadout-name/
 ```
 All slots are optional. A bare loadout is an empty directory (with `.gitkeep` for git tracking).
 
+#### Task 1.1.4: Write entrypoint-common.sh
+Shared setup script sourced by both drive and coast entrypoints. Responsibilities:
+1. Validate `ANTHROPIC_API_KEY` is set (exit with error if not)
+2. Configure git identity from `GIT_USER_NAME` / `GIT_USER_EMAIL` env vars (default to `Sandbox Derby Agent` / `sandbox-derby[bot]@noreply.github.com`)
+3. If `/home/agent/loadout/` exists and is non-empty, copy its contents into `/home/agent/.claude/`
+4. If `/home/agent/course/` exists, copy the course file into `/home/agent/workspace/`
+
+All copy operations are conditional — the script handles whatever is present without erroring on what's absent.
+
 ### Step 1.2: Base image
 
 #### Task 1.2.1: Write Dockerfile
-Adapted from kubesat. `debian:bookworm-slim` base. Install git, curl, ca-certificates, gnupg, python3, nodejs, npm, gh CLI. Create non-root `agent` user. Install Claude Code CLI. No kubectl. No build-time skill cloning (loadouts are mounted, not baked).
+Adapted from kubesat. `debian:bookworm-slim` base. Install git, curl, ca-certificates, gnupg, python3, nodejs, npm, gh CLI. Create non-root `agent` user. Install Claude Code CLI. No kubectl. No build-time skill cloning (loadouts are mounted, not baked). Conventional image name: `sandbox-derby`.
 
 #### Task 1.2.2: Write .env.example
 Document required env vars: `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`, `TARGET_REPO` (optional), `GIT_USER_NAME` (optional), `GIT_USER_EMAIL` (optional).
@@ -98,7 +104,7 @@ Document required env vars: `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`, `TARGET_REPO` (
 ### Step 1.3: Verify foundation
 
 #### Task 1.3.1: Build image and confirm Claude Code is available
-Build the image, run a throwaway container, verify `claude --version` works.
+Build the image as `sandbox-derby:latest`, run a throwaway container, verify `claude --version` works.
 
 **Critical files created:** `sandbox/Dockerfile`, `sandbox/entrypoint-common.sh`, `go.mod`, `.env.example`, `loadouts/bare/.gitkeep`, `loadouts/example/`, `courses/example.md`
 
@@ -120,7 +126,7 @@ Source `entrypoint-common.sh` (validates env vars, configures git identity, copi
 ### Step 2.2: Compose service for drive mode
 
 #### Task 2.2.1: Write docker-compose.yml with drive service
-Service `sandbox` using the drive entrypoint. Volume mounts:
+Build context: `./sandbox` (keeps build context scoped to the sandbox directory). Service `sandbox` using the drive entrypoint. Volume mounts:
 - Loadout directory → `/home/agent/loadout/` (read-only staging)
 - Workspace directory → `/home/agent/workspace` (if local mount desired)
 Env file: `.env`. Resource limits: 2 CPUs, 4GB memory.
@@ -149,7 +155,7 @@ Autonomous sandbox mode. Hand it a course and a workspace, it runs to completion
 ### Step 3.1: Coast entrypoint
 
 #### Task 3.1.1: Write entrypoint-coast.sh
-Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`, copies course from staging to workspace). Clone `TARGET_REPO` into `/home/agent/workspace` if set. Copy course file from staging (`/home/agent/course/`) into workspace so the agent can modify it (e.g., check off TODOs). Read course content. Construct prompt and execute via `claude -p "<prompt>"`. Exit when done.
+Source `entrypoint-common.sh` (validates env vars, configures git identity, copies loadout from staging to `~/.claude/`). Validate `TARGET_REPO` is set (required for coast mode). Clone `TARGET_REPO` into `/home/agent/workspace`. The common script then copies the course file from staging (`/home/agent/course/`) into the workspace so the agent can modify it (e.g., check off TODOs). Read course content. Construct prompt and execute via `claude -p "<prompt>"`. Exit when done.
 
 ### Step 3.2: Compose profile for coast mode
 
@@ -184,6 +190,7 @@ Structured comparison across multiple sandboxes. A Go CLI reads a derby config, 
 #### Task 4.1.1: Define derby YAML schema
 ```yaml
 name: <string>
+image: <string, default "sandbox-derby:latest">
 concurrency: <int, optional — max parallel sandboxes, defaults to total sandbox count>
 workspace:
   repo: <git URL>
