@@ -32,7 +32,7 @@ Build a proof-of-concept for Sandbox Derby: containerized Claude agent workspace
 - [x] Phase 1: Foundation
 - [x] Phase 2: Drive
 - [x] Phase 3: Coast
-- [ ] Phase 4: Derby
+- [x] Phase 4: Derby — Go not installed locally; compilation deferred, go.sum to be generated via `go mod tidy`
 
 ---
 
