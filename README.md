@@ -63,7 +63,7 @@ A sandbox is defined by what you load onto it:
 | Component   | Required? | What it is                                      |
 | ----------- | --------- | ----------------------------------------------- |
 | **Course** | Yes       | Natural language instructions (`course.md`)    |
-| **Adapter** | No        | Pluggable source polling for delta detection    |
+| **Agents** | No        | BYO agent definitions for specialized workflows    |
 | **Skills**  | No        | BYO skill repos for specialized capabilities    |
 | **Secrets** | Depends   | API keys, tokens for whatever you connect it to |
 
