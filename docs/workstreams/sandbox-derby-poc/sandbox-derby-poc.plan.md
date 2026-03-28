@@ -29,7 +29,7 @@ Build a proof-of-concept for Sandbox Derby: containerized Claude agent workspace
 - The operator has Docker and Go installed locally
 
 ## Progress
-- [ ] Phase 1: Foundation
+- [x] Phase 1: Foundation
 - [ ] Phase 2: Drive
 - [ ] Phase 3: Coast
 - [ ] Phase 4: Derby
