@@ -30,7 +30,7 @@ Build a proof-of-concept for Sandbox Derby: containerized Claude agent workspace
 
 ## Progress
 - [x] Phase 1: Foundation
-- [ ] Phase 2: Drive
+- [x] Phase 2: Drive
 - [ ] Phase 3: Coast
 - [ ] Phase 4: Derby
 
