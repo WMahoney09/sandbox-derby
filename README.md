@@ -56,6 +56,19 @@ Sandbox Derby makes the feedback loop explicit and repeatable. Define a task. Ru
 - **Coast** — Autonomous. Hand the sandbox a task and let it run to completion.
 - **Derby** — Comparative. Launch multiple sandboxes with varying configurations and get a report comparing outcomes.
 
+## The Loadout
+
+A sandbox is defined by what you load onto it:
+
+| Component   | Required? | What it is                                      |
+| ----------- | --------- | ----------------------------------------------- |
+| **Course** | Yes       | Natural language instructions (`course.md`)    |
+| **Adapter** | No        | Pluggable source polling for delta detection    |
+| **Skills**  | No        | BYO skill repos for specialized capabilities    |
+| **Secrets** | Depends   | API keys, tokens for whatever you connect it to |
+
+The simplest loadout is just a course. Claude's built-in capabilities handle the rest.
+
 ## Status
 
 Early development. The project is in the PoC phase — rough but functional is the target. See [vision-statement.md](vision-statement.md) for the full design and [docs/workstreams/sandbox-derby-poc/problem-statement.md](docs/workstreams/sandbox-derby-poc/problem-statement.md) for scope and success criteria.
