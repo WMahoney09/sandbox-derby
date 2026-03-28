@@ -24,7 +24,9 @@ CLAUDE_DIR="/home/agent/.claude"
 if [ -d "${LOADOUT_STAGING}" ] && [ "$(ls -A "${LOADOUT_STAGING}" 2>/dev/null)" ]; then
     mkdir -p "${CLAUDE_DIR}"
     cp -r "${LOADOUT_STAGING}/." "${CLAUDE_DIR}/"
+    export LOADOUT_STATUS="loaded"
     echo "Loadout copied from staging to ${CLAUDE_DIR}"
 else
+    export LOADOUT_STATUS="bare"
     echo "No loadout found at ${LOADOUT_STAGING} — running bare"
 fi

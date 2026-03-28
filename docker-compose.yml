@@ -1,0 +1,14 @@
+services:
+  sandbox:
+    build: ./sandbox
+    image: sandbox-derby:latest
+    entrypoint: ["./entrypoint-drive.sh"]
+    env_file: .env
+    volumes:
+      - ./loadouts/example:/home/agent/loadout:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4g
+    pids_limit: 256
