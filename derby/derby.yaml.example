@@ -1,0 +1,28 @@
+# Derby configuration example
+#
+# This derby compares a bare sandbox (no loadout) against the example
+# loadout, both running the same course on the same repo.
+
+name: example-derby
+image: sandbox-derby:latest
+concurrency: 4
+
+workspace:
+  repo: https://github.com/org/repo.git
+
+entries:
+  - name: bare
+    loadout: ./loadouts/bare
+    course: ./courses/example.md
+    replicas: 2
+    resources:
+      cpus: "2"
+      memory: 4g
+
+  - name: example-loadout
+    loadout: ./loadouts/example
+    course: ./courses/example.md
+    replicas: 2
+    resources:
+      cpus: "2"
+      memory: 4g
