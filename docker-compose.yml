@@ -12,3 +12,19 @@ services:
           cpus: "2"
           memory: 4g
     pids_limit: 256
+
+  coast:
+    image: sandbox-derby:latest
+    entrypoint: ["./entrypoint-coast.sh"]
+    env_file: .env
+    profiles:
+      - coast
+    volumes:
+      - ./loadouts/example:/home/agent/loadout:ro
+      - ./courses/example.md:/home/agent/course/course.md:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4g
+    pids_limit: 256
