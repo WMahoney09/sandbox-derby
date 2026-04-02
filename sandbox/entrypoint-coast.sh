@@ -58,5 +58,10 @@ ${COURSE_CONTENT}
 
 echo ""
 echo "============================================"
+echo "  Workspace Summary"
+echo "============================================"
+git -C /home/agent/workspace log --oneline 2>/dev/null || echo "(no commits found)"
+echo ""
+echo "============================================"
 echo "  Coast complete."
 echo "============================================"
