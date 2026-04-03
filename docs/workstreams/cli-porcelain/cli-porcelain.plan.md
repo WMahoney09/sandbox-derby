@@ -15,7 +15,7 @@ Wrap all three sandbox-derby modes (drive, coast, derby run) behind a unified `d
 ## Progress
 
 - [x] Phase 1: Export checkImage helper
-- [ ] Phase 2: Implement drive mode
+- [x] Phase 2: Implement drive mode
 - [ ] Phase 3: Implement coast mode
 - [ ] Phase 4: Rewrite main.go with subcommand routing
 
