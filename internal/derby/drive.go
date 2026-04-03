@@ -3,6 +3,7 @@ package derby
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -72,8 +73,14 @@ func Drive(cfg DriveConfig) error {
 	execCmd.Stderr = os.Stderr
 
 	if err := execCmd.Run(); err != nil {
-		// Exit code 130 means the user pressed Ctrl+C — not an error
-		return fmt.Errorf("exec session ended: %w", err)
+		// The user ended the session — any exit from the interactive shell
+		// (exit, Ctrl+D, Ctrl+C) is a normal outcome, not an error.
+		if _, ok := err.(*exec.ExitError); ok {
+			fmt.Println("Drive session ended. Container removed.")
+			return nil
+		}
+		// A non-ExitError means something else went wrong (e.g., docker not found)
+		return fmt.Errorf("exec session failed: %w", err)
 	}
 
 	fmt.Println("Drive session ended. Container removed.")
