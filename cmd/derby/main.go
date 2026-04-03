@@ -14,6 +14,7 @@ Commands:
   drive      Start an interactive sandbox session
   coast      Run an autonomous sandbox with a course
   scrimmage  Launch a scrimmage from a config file
+  race       Manage a race lifecycle (setup, start, status, conclude, results)
 
 Run 'derby <command> -help' for command-specific options.`
 
@@ -30,6 +31,8 @@ func main() {
 		cmdCoast(os.Args[2:])
 	case "scrimmage":
 		cmdScrimmage(os.Args[2:])
+	case "race":
+		cmdRace(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n\n%s\n", os.Args[1], usage)
 		os.Exit(1)
@@ -127,4 +130,79 @@ func cmdScrimmage(args []string) {
 	}
 
 	fmt.Printf("Scrimmage complete. Report written to: %s\n", outputPath)
+}
+
+const raceUsage = `Usage: derby race <subcommand> [options]
+
+Subcommands:
+  setup    <config.yaml>   Set up a race from a config file
+  start    [output-dir]    Start the race (run all sandboxes)
+  status   [output-dir]    Check the status of a race
+  conclude [output-dir]    Stop running sandboxes and generate report
+  results  [output-dir]    Show the path to the race report`
+
+func cmdRace(args []string) {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, raceUsage)
+		os.Exit(1)
+	}
+
+	subcommand := args[0]
+	subArgs := args[1:]
+
+	switch subcommand {
+	case "setup":
+		if len(subArgs) < 1 {
+			fmt.Fprintln(os.Stderr, "Usage: derby race setup <config.yaml>")
+			os.Exit(1)
+		}
+		if err := derby.RaceSetup(subArgs[0]); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+	case "start":
+		outputDir := ""
+		if len(subArgs) > 0 {
+			outputDir = subArgs[0]
+		}
+		if err := derby.RaceStart(outputDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+	case "status":
+		outputDir := ""
+		if len(subArgs) > 0 {
+			outputDir = subArgs[0]
+		}
+		if err := derby.RaceStatus(outputDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+	case "conclude":
+		outputDir := ""
+		if len(subArgs) > 0 {
+			outputDir = subArgs[0]
+		}
+		if err := derby.RaceConclude(outputDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+	case "results":
+		outputDir := ""
+		if len(subArgs) > 0 {
+			outputDir = subArgs[0]
+		}
+		if err := derby.RaceResults(outputDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown race subcommand: %s\n\n%s\n", subcommand, raceUsage)
+		os.Exit(1)
+	}
 }
