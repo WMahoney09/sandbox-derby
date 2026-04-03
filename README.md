@@ -38,17 +38,21 @@ Sandbox Derby is a tool for testing and comparing agent tooling empirically. It 
 
 2. **Derbies** — structured comparisons across sandboxes. Run the same task with different toolkits, or the same toolkit across different tasks, and compare results. The derby captures outputs and distills findings into actionable reports.
 
-A **loadout** — The loadout is the variable under test. The set of augmentations loaded into a sandbox: skills, agent definitions, team definitions. A sandbox can run bare (loadout at all) or fully loaded.
+A **loadout** is the variable under test. The set of augmentations loaded into a sandbox: skills, agent definitions, team definitions. A sandbox can run bare (no loadout at all) or fully loaded.
 
-A **course** is the task given to a sandbox. Either a prompt string or a markdown file. In drive mode the course may be irrelevant — the human is steering.
+A **course** is the task given to a sandbox. A markdown file with instructions. In drive mode the course may be irrelevant — the human is steering.
 
 The goal: turn agent tooling improvement from guesswork into evidence.
 
-## Why?
+## Quick Start
 
-Agent tooling — skills, agent definitions, team definitions — is only as good as the outcomes it produces. Today, improving that tooling is manual and intuitive. You write a skill, use it, notice whether it helped, and tweak it. That works at small scale but doesn't compound.
-
-Sandbox Derby makes the feedback loop explicit and repeatable. Define a task. Run it with different tool configurations. Compare results. Publish learnings. Repeat.
+```
+git clone https://github.com/WMahoney09/sandbox-derby.git
+cd sandbox-derby
+./setup.sh        # installs CLI, builds image, creates .env
+# edit .env with your API keys
+derby drive        # interactive sandbox
+```
 
 ## Modes
 
@@ -56,29 +60,50 @@ Sandbox Derby makes the feedback loop explicit and repeatable. Define a task. Ru
 - **Coast** — Autonomous. Hand the sandbox a task and let it run to completion.
 - **Derby** — Comparative. Launch multiple sandboxes with varying configurations and get a report comparing outcomes.
 
-## The Loadout
+```
+derby drive --loadout https://github.com/org/skills.git
+derby coast --course ./courses/task.md --repo https://github.com/org/repo.git --skip-permissions
+derby run examples/derby.yaml.example
+```
 
-A sandbox is defined by what you load onto it:
+## Loadouts
 
-| Component   | Required? | What it is                                      |
-| ----------- | --------- | ----------------------------------------------- |
-| **Course** | Yes       | Natural language instructions (`course.md`)    |
-| **Agents** | No        | BYO agent definitions for specialized workflows    |
-| **Skills**  | No        | BYO skill repos for specialized capabilities    |
-| **Secrets** | Depends   | API keys, tokens for whatever you connect it to |
+A loadout mirrors the `~/.claude/` directory structure and can come from three sources:
 
-The simplest loadout is just a course. Claude's built-in capabilities handle the rest.
+**Bare** — no loadout. The sandbox runs with vanilla Claude. This is the default and serves as a baseline for comparison.
+
+**Local path** — a directory on the host. Point it at a skill library you're developing, or merge multiple libraries into one directory to test a combined loadout.
+
+```
+derby drive --loadout ./loadouts/example
+derby drive --loadout /path/to/my/skills
+```
+
+**Remote (git URL)** — a repository cloned into the sandbox at startup. Test a skill library without downloading it locally, or compare two remote libraries head-to-head.
+
+```
+derby drive --loadout https://github.com/org/skills-a.git
+derby coast --loadout https://github.com/org/skills-b.git --course ./courses/task.md --repo https://github.com/org/repo.git
+```
+
+In a derby, mix freely — test a local work-in-progress loadout against the published remote version in the same run.
+
+## Why?
+
+Agent tooling — skills, agent definitions, team definitions — is only as good as the outcomes it produces. Today, improving that tooling is manual and intuitive. You write a skill, use it, notice whether it helped, and tweak it. That works at small scale but doesn't compound.
+
+Sandbox Derby makes the feedback loop explicit and repeatable. Define a task. Run it with different tool configurations. Compare results. Publish learnings. Repeat.
 
 ## Status
 
-Early development. The project is in the PoC phase — rough but functional is the target. See [vision-statement.md](vision-statement.md) for the full design and [docs/workstreams/sandbox-derby-poc/problem-statement.md](docs/workstreams/sandbox-derby-poc/problem-statement.md) for scope and success criteria.
+The CLI porcelain (`derby drive`, `derby coast`, `derby run`) is functional. Drive, coast, and derby modes work with local and remote loadouts. See [vision-statement.md](vision-statement.md) for the full design and [docs/usage.md](docs/usage.md) for detailed usage.
 
 ## Tech
 
-- **Go** with Charm for the TUI (MVP phase)
+- **Go** CLI for orchestration
 - **Docker** for sandbox isolation
 - **Claude agents** as the first-class citizen (Anthropic-first)
-- Base image adapted from kubesat (`debian:bookworm-slim` + Claude Code CLI, gh, Node.js, Python, git)
+- Base image: `debian:bookworm-slim` + Claude Code CLI, gh, Node.js, Python, git
 
 ## License
 
