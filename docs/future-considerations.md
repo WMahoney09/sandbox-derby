@@ -28,11 +28,17 @@ Supporting agents powered by models other than Claude. The Docker isolation woul
 
 _Source: understanding phase — future, Anthropic-first is a principle_
 
+## CLI Porcelain
+
+A Go CLI (`sbd`) with subcommands that wrap the Docker/Compose plumbing so the operator never runs docker commands directly. `sbd drive` stands up a sandbox and connects to it. `sbd coast` runs a sandbox autonomously against a course. `sbd run` executes a derby from a config file. The CLI is the first layer where the operator's interface is Sandbox Derby itself rather than Docker — fast follow after PoC, prerequisite to the TUI.
+
+_Source: integration testing session — immediate post-PoC, before TUI_
+
 ## Charm TUI
 
-A polished terminal UI built with Charm (Go) replacing CLI commands and docker compose as the primary interaction surface. Covers driving, coasting, and running derbies.
+A polished terminal UI built with Charm (Go) replacing the CLI as the primary interaction surface. Launch `sbd` with no subcommand to enter an interactive interface for driving, coasting, and running derbies. Builds on top of the CLI porcelain layer — same Go code underneath, richer interaction on top.
 
-_Source: understanding phase — MVP scope, not PoC_
+_Source: understanding phase — MVP scope, after CLI porcelain_
 
 ## Portable Loadouts
 

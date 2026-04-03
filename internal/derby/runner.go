@@ -2,7 +2,6 @@ package derby
 
 import (
 	"fmt"
-	"os"
 	"sync"
 )
 
@@ -19,13 +18,8 @@ func NewRunner(cfg *Config) *Runner {
 // Run executes the derby: launches all sandboxes concurrently (bounded by
 // the concurrency limit) and collects results.
 func (r *Runner) Run() ([]SandboxResult, error) {
-	// Validate environment
-	if os.Getenv("ANTHROPIC_API_KEY") == "" {
-		return nil, fmt.Errorf("ANTHROPIC_API_KEY environment variable is required")
-	}
-
 	// Check that image exists
-	if err := checkImage(r.config.Image); err != nil {
+	if err := CheckImage(r.config.Image); err != nil {
 		return nil, fmt.Errorf("image %s not found — build it first: %w", r.config.Image, err)
 	}
 
@@ -41,7 +35,9 @@ func (r *Runner) Run() ([]SandboxResult, error) {
 				LoadoutPath: entry.Loadout,
 				CoursePath:  entry.Course,
 				RepoURL:     r.config.Workspace.Repo,
-				Resources:   entry.Resources,
+				EnvFile:         r.config.EnvFile,
+				SkipPermissions: entry.SkipPermissions,
+				Resources:       entry.Resources,
 			})
 		}
 	}
@@ -85,8 +81,8 @@ func (r *Runner) Run() ([]SandboxResult, error) {
 	return results, nil
 }
 
-// checkImage verifies that a Docker image exists locally.
-func checkImage(image string) error {
+// CheckImage verifies that a Docker image exists locally.
+func CheckImage(image string) error {
 	cmd := newCommand("docker", "image", "inspect", image)
 	cmd.Stdout = nil
 	cmd.Stderr = nil

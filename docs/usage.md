@@ -66,8 +66,8 @@ The agent will clone the repo, execute the course, and exit. Inspect results via
 
 ## Derby
 
-See `derby/derby.yaml.example` for the configuration format. Run a derby with:
+See `examples/derby.yaml.example` for the configuration format. Run a derby with:
 
 ```
-go run ./cmd/derby run derby/derby.yaml.example
+go run ./cmd/derby run examples/derby.yaml.example
 ```
