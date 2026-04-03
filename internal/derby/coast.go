@@ -24,10 +24,6 @@ func Coast(cfg CoastConfig) error {
 		return fmt.Errorf("image %q not found — run: docker compose build\n  %w", cfg.Image, err)
 	}
 
-	absLoadout, err := filepath.Abs(cfg.Loadout)
-	if err != nil {
-		return fmt.Errorf("resolving loadout path: %w", err)
-	}
 	absCourse, err := filepath.Abs(cfg.Course)
 	if err != nil {
 		return fmt.Errorf("resolving course path: %w", err)
@@ -47,8 +43,17 @@ func Coast(cfg CoastConfig) error {
 		args = append(args, "-e", "SKIP_PERMISSIONS=true")
 	}
 
+	if isRemoteLoadout(cfg.Loadout) {
+		args = append(args, "-e", fmt.Sprintf("LOADOUT_REPO=%s", cfg.Loadout))
+	} else {
+		absLoadout, err := filepath.Abs(cfg.Loadout)
+		if err != nil {
+			return fmt.Errorf("resolving loadout path: %w", err)
+		}
+		args = append(args, "-v", fmt.Sprintf("%s:/home/agent/loadout:ro", absLoadout))
+	}
+
 	args = append(args,
-		"-v", fmt.Sprintf("%s:/home/agent/loadout:ro", absLoadout),
 		"-v", fmt.Sprintf("%s:/home/agent/course/course.md:ro", absCourse),
 		"--cpus", "2",
 		"--memory", "4g",

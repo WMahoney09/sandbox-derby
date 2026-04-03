@@ -23,10 +23,6 @@ func Drive(cfg DriveConfig) error {
 		return fmt.Errorf("image %q not found — run: docker compose build\n  %w", cfg.Image, err)
 	}
 
-	absLoadout, err := filepath.Abs(cfg.Loadout)
-	if err != nil {
-		return fmt.Errorf("resolving loadout path: %w", err)
-	}
 	absEnvFile, err := filepath.Abs(cfg.EnvFile)
 	if err != nil {
 		return fmt.Errorf("resolving env file path: %w", err)
@@ -40,13 +36,25 @@ func Drive(cfg DriveConfig) error {
 		"run", "-d",
 		"--name", containerName,
 		"--env-file", absEnvFile,
-		"-v", fmt.Sprintf("%s:/home/agent/loadout:ro", absLoadout),
+	}
+
+	if isRemoteLoadout(cfg.Loadout) {
+		runArgs = append(runArgs, "-e", fmt.Sprintf("LOADOUT_REPO=%s", cfg.Loadout))
+	} else {
+		absLoadout, err := filepath.Abs(cfg.Loadout)
+		if err != nil {
+			return fmt.Errorf("resolving loadout path: %w", err)
+		}
+		runArgs = append(runArgs, "-v", fmt.Sprintf("%s:/home/agent/loadout:ro", absLoadout))
+	}
+
+	runArgs = append(runArgs,
 		"--cpus", "2",
 		"--memory", "4g",
 		"--pids-limit", "256",
 		cfg.Image,
 		"./entrypoint-drive.sh",
-	}
+	)
 
 	startCmd := newCommand("docker", runArgs...)
 	startCmd.Stderr = os.Stderr

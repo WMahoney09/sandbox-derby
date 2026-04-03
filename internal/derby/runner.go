@@ -35,8 +35,9 @@ func (r *Runner) Run() ([]SandboxResult, error) {
 				LoadoutPath: entry.Loadout,
 				CoursePath:  entry.Course,
 				RepoURL:     r.config.Workspace.Repo,
-				EnvFile:     r.config.EnvFile,
-				Resources:   entry.Resources,
+				EnvFile:         r.config.EnvFile,
+				SkipPermissions: entry.SkipPermissions,
+				Resources:       entry.Resources,
 			})
 		}
 	}

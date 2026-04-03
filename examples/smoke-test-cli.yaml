@@ -1,0 +1,27 @@
+name: cli-porcelain-smoke
+image: sandbox-derby:latest
+concurrency: 2
+
+workspace:
+  repo: https://github.com/WMahoney09/sandbox-derby.git
+
+entries:
+  - name: bare-safe
+    loadout: ./loadouts/bare
+    course: ./courses/smoke-test-cli.md
+    skip_permissions: false
+
+  - name: bare-dangerous
+    loadout: ./loadouts/bare
+    course: ./courses/smoke-test-cli.md
+    skip_permissions: true
+
+  - name: skills-safe
+    loadout: https://github.com/WMahoney09/agent_skills.git
+    course: ./courses/smoke-test-cli.md
+    skip_permissions: false
+
+  - name: skills-dangerous
+    loadout: https://github.com/WMahoney09/agent_skills.git
+    course: ./courses/smoke-test-cli.md
+    skip_permissions: true

@@ -25,11 +25,12 @@ type Workspace struct {
 // Entry defines a single derby entry — a loadout/course combination
 // that may be replicated multiple times.
 type Entry struct {
-	Name      string    `yaml:"name"`
-	Loadout   string    `yaml:"loadout"`
-	Course    string    `yaml:"course"`
-	Replicas  int       `yaml:"replicas"`
-	Resources Resources `yaml:"resources"`
+	Name            string    `yaml:"name"`
+	Loadout         string    `yaml:"loadout"`
+	Course          string    `yaml:"course"`
+	Replicas        int       `yaml:"replicas"`
+	SkipPermissions bool      `yaml:"skip_permissions"`
+	Resources       Resources `yaml:"resources"`
 }
 
 // Resources defines container resource limits.
