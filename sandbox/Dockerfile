@@ -11,6 +11,7 @@ RUN apt-get update \
         python3 \
         nodejs \
         npm \
+        golang \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GitHub CLI

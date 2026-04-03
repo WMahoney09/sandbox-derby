@@ -4,6 +4,100 @@ Potential future workstreams. These are not yet scoped — they represent ideas,
 
 ---
 
+## ~~CLI Porcelain~~ (complete — v0.1)
+
+Shipped as `derby drive`, `derby coast`, `derby run`. Binary name is `derby`.
+
+## ~~Sandbox IDs~~ (complete — v0.1)
+
+Sequential IDs assigned per sandbox, passed as `SANDBOX_ID` env var, shown in banners, prompts, container names, and reports.
+
+---
+
+## Scrimmage Rename
+
+Rename `derby run` to `derby scrimmage` to distinguish the current informal mode (markdown course, one-shot execution, local report) from the formal `derby race` lifecycle. This is a prerequisite naming change before building the race commands.
+
+_Source: integration testing session — immediate, next implementation step_
+
+## Derby Race Lifecycle
+
+A formal derby mode with a multi-step lifecycle, replacing the one-shot `derby run` for structured evaluations. The course is a GitHub repository with an issue backlog. Each sandbox gets a feature branch, works through the backlog via PRs into its own branch, and opens a final PR into main when done.
+
+CLI commands:
+
+```
+derby race setup config.yaml    # validate repo, assign sandbox IDs, show schedule
+derby race start                # launch sandboxes; reports results when all finish
+derby race status               # check progress while running
+derby race conclude             # force-stop all sandboxes, report results (DNF for incomplete)
+derby race results              # view results — no args = most recent, or pass a name/path
+```
+
+`setup` is where the officiant reviews the lineup and confirms. `start` runs the race and produces a report when all sandboxes finish naturally. `conclude` ends the race early — incomplete sandboxes are marked DNF (did not finish). `results` is read-only, for viewing reports from past races.
+
+Each sandbox:
+1. Gets a sandbox ID and creates a feature branch off main (`sandbox-42`)
+2. Reads the issue backlog and works through it autonomously
+3. For each issue (or group), branches off its feature branch, does the work, and opens a PR back into its feature branch — referencing issues without auto-closing them
+4. When the backlog is exhausted, opens a final PR from its feature branch into main (without merging)
+5. Exits
+
+What the officiant sees on GitHub: main branch untouched, issue backlog still open, N pull requests into main (one per sandbox) each representing a complete attempt at the entire backlog. The repo is fully reusable for subsequent races.
+
+_Source: integration testing session — significant workstream, after scrimmage rename_
+
+## Divisions
+
+A division is a runtime environment — it defines what's installed in the sandbox image. Separate from the loadout (which defines what Claude knows) and the course (which defines the task). Divisions enable testing whether loadouts generalize across different tech stacks.
+
+Examples: a TypeScript division (Node), a Rails division (Ruby + Rails + PostgreSQL client), an open division (everything installed — heavier but allows tech stack flexibility).
+
+A derby config would reference named divisions, and each entry maps to one:
+
+```yaml
+divisions:
+  - name: typescript
+    packages: [nodejs, npm]
+  - name: rails
+    packages: [ruby, rails, postgresql-client]
+
+entries:
+  - name: skills-ts
+    division: typescript
+    loadout: https://github.com/org/skills.git
+  - name: skills-rails
+    division: rails
+    loadout: https://github.com/org/skills.git
+```
+
+A `derby race build` step would construct an image per division by layering packages onto the base image. Until divisions are implemented, the base image serves as a single "open" division with Node, Python, and Go pre-installed.
+
+Derby patterns enabled by divisions:
+- Same course, same loadout, different divisions — does this loadout generalize across tech stacks?
+- Same course, same division, different loadouts — which loadout is best for Rails work?
+- Full matrix — courses x loadouts x divisions
+
+_Source: integration testing session — roadmap, after race lifecycle stabilizes_
+
+## Derby Events
+
+Community-scale races where the course repo is also the venue. The repo contains everything needed to run a race: the issue backlog (the course), a `contestants/` directory (the loadouts), and event configuration (replicas, resources, etc.).
+
+Enrollment is PR-based: anyone who wants to compete PRs their loadout into `contestants/`. The officiant reviews and merges before the race. The lineup is transparent — everyone can see who entered what. The repo is versioned, so the history is the record of every event.
+
+This can be automated. A kubesat instance on a monthly orbital period could officiate: pull the course repo, see who's in `contestants/`, run `derby race setup` + `derby race start`, and publish results. No human at the keyboard.
+
+Design implications for `derby race`: the setup/start/conclude lifecycle must be fully automatable from the start so an external system (kubesat, CI, cron) can drive it without interactive prompts.
+
+_Source: integration testing session — future, builds on derby race lifecycle_
+
+## Charm TUI
+
+A polished terminal UI built with Charm (Go) replacing the CLI as the primary interaction surface. Launch `derby` with no subcommand to enter an interactive interface for driving, coasting, and running scrimmages/races. Builds on top of the CLI porcelain layer — same Go code underneath, richer interaction on top.
+
+_Source: understanding phase — MVP scope, prerequisite (CLI porcelain) is complete_
+
 ## LLM-as-Judge Evaluation
 
 Automated evaluation of sandbox outputs using an LLM to compare results across sandboxes: which produced results sooner, which produced better results, and why. Replaces or augments human judgment in the derby report.
@@ -22,23 +116,17 @@ Derby findings published directly as issues against the repos that define the to
 
 _Source: understanding phase — future state_
 
-## Non-Anthropic Model Support
+## Workspace Publishing via PRs or Forks
 
-Supporting agents powered by models other than Claude. The Docker isolation would work for any agent runtime. Claude is the first-class citizen; other providers would be additive.
+Publishing sandbox workspace results as pull requests, worktrees, or repo forks rather than keeping them local. Would allow external tools (the "Derby Committee") to analyze results without access to the local machine. Partially addressed by the derby race lifecycle (which produces PRs), but scrimmage mode still keeps results local.
 
-_Source: understanding phase — future, Anthropic-first is a principle_
+_Source: understanding phase — MVP exploration, not PoC_
 
-## CLI Porcelain
+## Derby Committee
 
-A Go CLI (`sbd`) with subcommands that wrap the Docker/Compose plumbing so the operator never runs docker commands directly. `sbd drive` stands up a sandbox and connects to it. `sbd coast` runs a sandbox autonomously against a course. `sbd run` executes a derby from a config file. The CLI is the first layer where the operator's interface is Sandbox Derby itself rather than Docker — fast follow after PoC, prerequisite to the TUI.
+A separate tool or agent system that consumes derby output and performs deeper analysis — trend detection across multiple derby runs, longitudinal loadout performance tracking, automated recommendations for loadout changes.
 
-_Source: integration testing session — immediate post-PoC, before TUI_
-
-## Charm TUI
-
-A polished terminal UI built with Charm (Go) replacing the CLI as the primary interaction surface. Launch `sbd` with no subcommand to enter an interactive interface for driving, coasting, and running derbies. Builds on top of the CLI porcelain layer — same Go code underneath, richer interaction on top.
-
-_Source: understanding phase — MVP scope, after CLI porcelain_
+_Source: understanding phase — implied by "another tool can do the analysis"_
 
 ## Portable Loadouts
 
@@ -52,38 +140,11 @@ Baking loadouts into the Docker image at build time (vs. volume-mounting at runt
 
 _Source: solutioning phase — deferred, mount-time is sufficient for PoC_
 
-## Workspace Publishing via PRs or Forks
+## Non-Anthropic Model Support
 
-Publishing sandbox workspace results as pull requests, worktrees, or repo forks rather than keeping them local. Would allow external tools (the "Derby Committee") to analyze results without access to the local machine.
+Supporting agents powered by models other than Claude. The Docker isolation would work for any agent runtime. Claude is the first-class citizen; other providers would be additive.
 
-_Source: understanding phase — MVP exploration, not PoC_
-
-## Derby Committee
-
-A separate tool or agent system that consumes derby output and performs deeper analysis — trend detection across multiple derby runs, longitudinal loadout performance tracking, automated recommendations for loadout changes.
-
-_Source: understanding phase — implied by "another tool can do the analysis"_
-
-## Sandbox IDs
-
-Each sandbox in a derby receives a unique numeric identifier (e.g., Sandbox 42) — analogous to the number painted on a soapbox racer. The ID is assigned by the runner at derby configuration time, passed into the container as an environment variable, and used by the agent to identify itself in branch names, PR titles, commits, and issue references. The derby report correlates results by ID. Structural, not cosmetic — branch naming (`sandbox-42`), PR authorship, and result correlation all depend on it. Useful in both scrimmage and formal derby modes.
-
-_Source: integration testing session — immediate, next implementation priority_
-
-## Derby Scrimmage
-
-A formal derby mode where the course is a GitHub repository with an issue backlog rather than a markdown file. The term "scrimmage" refers to the current informal mode (markdown course, quick and lightweight); a full "derby" is the structured version with more ceremony.
-
-In a formal derby, each sandbox:
-1. Gets a sandbox ID and creates a feature branch off main (`sandbox-42`)
-2. Reads the issue backlog and works through it autonomously
-3. For each issue (or group), branches off its feature branch, does the work, and opens a PR back into its feature branch — referencing issues without auto-closing them
-4. When the backlog is exhausted, opens a final PR from its feature branch into main (without merging)
-5. Exits
-
-What the officiant sees on GitHub: main branch untouched, issue backlog still open, N pull requests into main (one per sandbox) each representing a complete attempt at the entire backlog. The repo is fully reusable for subsequent derbies.
-
-_Source: integration testing session — post-sandbox-IDs, significant workstream_
+_Source: understanding phase — future, Anthropic-first is a principle_
 
 ## Docker SDK Migration
 
