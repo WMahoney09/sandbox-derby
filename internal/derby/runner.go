@@ -2,7 +2,6 @@ package derby
 
 import (
 	"fmt"
-	"os"
 	"sync"
 )
 
@@ -19,11 +18,6 @@ func NewRunner(cfg *Config) *Runner {
 // Run executes the derby: launches all sandboxes concurrently (bounded by
 // the concurrency limit) and collects results.
 func (r *Runner) Run() ([]SandboxResult, error) {
-	// Validate environment
-	if os.Getenv("ANTHROPIC_API_KEY") == "" {
-		return nil, fmt.Errorf("ANTHROPIC_API_KEY environment variable is required")
-	}
-
 	// Check that image exists
 	if err := checkImage(r.config.Image); err != nil {
 		return nil, fmt.Errorf("image %s not found — build it first: %w", r.config.Image, err)
@@ -41,6 +35,7 @@ func (r *Runner) Run() ([]SandboxResult, error) {
 				LoadoutPath: entry.Loadout,
 				CoursePath:  entry.Course,
 				RepoURL:     r.config.Workspace.Repo,
+				EnvFile:     r.config.EnvFile,
 				Resources:   entry.Resources,
 			})
 		}

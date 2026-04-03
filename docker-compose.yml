@@ -21,7 +21,6 @@ services:
       - coast
     volumes:
       - ./loadouts/example:/home/agent/loadout:ro
-      - ./courses/example.md:/home/agent/course/course.md:ro
     deploy:
       resources:
         limits:

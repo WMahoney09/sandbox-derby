@@ -19,6 +19,7 @@ type SandboxSpec struct {
 	LoadoutPath string
 	CoursePath  string
 	RepoURL     string
+	EnvFile     string
 	Resources   Resources
 }
 
@@ -49,14 +50,17 @@ func RunSandbox(spec SandboxSpec, outputDir string) SandboxResult {
 	if err != nil {
 		return SandboxResult{Spec: spec, Error: fmt.Errorf("resolving course path: %w", err)}
 	}
+	absEnvFile, err := filepath.Abs(spec.EnvFile)
+	if err != nil {
+		return SandboxResult{Spec: spec, Error: fmt.Errorf("resolving env file path: %w", err)}
+	}
 
 	// Build docker run arguments (no --rm: we need the container to stick around
 	// so we can docker-cp the workspace out before cleaning up)
 	args := []string{
 		"run",
 		"--name", containerName,
-		"-e", fmt.Sprintf("ANTHROPIC_API_KEY=%s", os.Getenv("ANTHROPIC_API_KEY")),
-		"-e", fmt.Sprintf("GITHUB_TOKEN=%s", os.Getenv("GITHUB_TOKEN")),
+		"--env-file", absEnvFile,
 		"-e", fmt.Sprintf("TARGET_REPO=%s", spec.RepoURL),
 		"-v", fmt.Sprintf("%s:/home/agent/loadout:ro", absLoadout),
 		"-v", fmt.Sprintf("%s:/home/agent/course/course.md:ro", absCourse),

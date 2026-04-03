@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Name        string    `yaml:"name"`
 	Image       string    `yaml:"image"`
+	EnvFile     string    `yaml:"env_file"`
 	Concurrency int       `yaml:"concurrency"`
 	Workspace   Workspace `yaml:"workspace"`
 	Entries     []Entry   `yaml:"entries"`
@@ -85,6 +86,9 @@ func (c *Config) validate() error {
 func (c *Config) applyDefaults() {
 	if c.Image == "" {
 		c.Image = "sandbox-derby:latest"
+	}
+	if c.EnvFile == "" {
+		c.EnvFile = ".env"
 	}
 	for i := range c.Entries {
 		if c.Entries[i].Replicas <= 0 {

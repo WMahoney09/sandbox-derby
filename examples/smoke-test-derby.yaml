@@ -1,0 +1,23 @@
+name: smoke-test
+image: sandbox-derby:latest
+concurrency: 2
+
+workspace:
+  repo: https://github.com/WMahoney09/sandbox-derby.git
+
+entries:
+  - name: bare
+    loadout: ./loadouts/bare
+    course: ./courses/smoke-test-derby.md
+    replicas: 1
+    resources:
+      cpus: "2"
+      memory: 4g
+
+  - name: example-loadout
+    loadout: ./loadouts/example
+    course: ./courses/smoke-test-derby.md
+    replicas: 1
+    resources:
+      cpus: "2"
+      memory: 4g
