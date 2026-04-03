@@ -47,6 +47,39 @@ What the officiant sees on GitHub: main branch untouched, issue backlog still op
 
 _Source: integration testing session — significant workstream, after scrimmage rename_
 
+## Divisions
+
+A division is a runtime environment — it defines what's installed in the sandbox image. Separate from the loadout (which defines what Claude knows) and the course (which defines the task). Divisions enable testing whether loadouts generalize across different tech stacks.
+
+Examples: a TypeScript division (Node), a Rails division (Ruby + Rails + PostgreSQL client), an open division (everything installed — heavier but allows tech stack flexibility).
+
+A derby config would reference named divisions, and each entry maps to one:
+
+```yaml
+divisions:
+  - name: typescript
+    packages: [nodejs, npm]
+  - name: rails
+    packages: [ruby, rails, postgresql-client]
+
+entries:
+  - name: skills-ts
+    division: typescript
+    loadout: https://github.com/org/skills.git
+  - name: skills-rails
+    division: rails
+    loadout: https://github.com/org/skills.git
+```
+
+A `derby race build` step would construct an image per division by layering packages onto the base image. Until divisions are implemented, the base image serves as a single "open" division with Node, Python, and Go pre-installed.
+
+Derby patterns enabled by divisions:
+- Same course, same loadout, different divisions — does this loadout generalize across tech stacks?
+- Same course, same division, different loadouts — which loadout is best for Rails work?
+- Full matrix — courses x loadouts x divisions
+
+_Source: integration testing session — roadmap, after race lifecycle stabilizes_
+
 ## Derby Events
 
 Community-scale races where the course repo is also the venue. The repo contains everything needed to run a race: the issue backlog (the course), a `contestants/` directory (the loadouts), and event configuration (replicas, resources, etc.).
