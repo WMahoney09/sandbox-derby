@@ -1,6 +1,4 @@
 # Sandbox Derby
-## 🚧 WIP 🏗️ 
-
 ```
 
                              ██
