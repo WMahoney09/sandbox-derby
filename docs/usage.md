@@ -81,12 +81,12 @@ derby coast --course ./courses/example.md --repo https://github.com/org/repo.git
 
 The `--repo` is the workspace the agent works in (cloned at startup). The `--course` is the task (a markdown file). Use `--skip-permissions` for autonomous execution without permission prompts.
 
-## Derby (Comparative)
+## Scrimmage (Comparative)
 
 Run multiple sandboxes with varying configurations and get a report:
 
 ```
-derby run examples/derby.yaml.example
+derby scrimmage examples/derby.yaml.example
 ```
 
 Each sandbox gets a unique ID (Sandbox #1, #2, etc.) for correlation in the report. See `examples/` for configuration format. Key fields per entry:

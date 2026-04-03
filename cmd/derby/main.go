@@ -11,9 +11,9 @@ import (
 const usage = `Usage: derby <command> [options]
 
 Commands:
-  drive   Start an interactive sandbox session
-  coast   Run an autonomous sandbox with a course
-  run     Launch a derby from a config file
+  drive      Start an interactive sandbox session
+  coast      Run an autonomous sandbox with a course
+  scrimmage  Launch a scrimmage from a config file
 
 Run 'derby <command> -help' for command-specific options.`
 
@@ -28,8 +28,8 @@ func main() {
 		cmdDrive(os.Args[2:])
 	case "coast":
 		cmdCoast(os.Args[2:])
-	case "run":
-		cmdRun(os.Args[2:])
+	case "scrimmage":
+		cmdScrimmage(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n\n%s\n", os.Args[1], usage)
 		os.Exit(1)
@@ -93,9 +93,9 @@ func cmdCoast(args []string) {
 	}
 }
 
-func cmdRun(args []string) {
+func cmdScrimmage(args []string) {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Usage: derby run <config.yaml>")
+		fmt.Fprintln(os.Stderr, "Usage: derby scrimmage <config.yaml>")
 		os.Exit(1)
 	}
 
@@ -110,7 +110,7 @@ func cmdRun(args []string) {
 	runner := derby.NewRunner(cfg)
 	results, err := runner.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Derby run failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Scrimmage failed: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -126,5 +126,5 @@ func cmdRun(args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Derby complete. Report written to: %s\n", outputPath)
+	fmt.Printf("Scrimmage complete. Report written to: %s\n", outputPath)
 }

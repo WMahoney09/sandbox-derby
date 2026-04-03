@@ -58,12 +58,12 @@ derby drive        # interactive sandbox
 
 - **Drive** — Interactive. Enter a sandbox and work with the agent directly.
 - **Coast** — Autonomous. Hand the sandbox a task and let it run to completion.
-- **Derby** — Comparative. Launch multiple sandboxes with varying configurations and get a report comparing outcomes.
+- **Scrimmage** — Comparative. Launch multiple sandboxes with varying configurations and get a report comparing outcomes.
 
 ```
 derby drive --loadout https://github.com/org/skills.git
 derby coast --course ./courses/task.md --repo https://github.com/org/repo.git --skip-permissions
-derby run examples/derby.yaml.example
+derby scrimmage examples/derby.yaml.example
 ```
 
 ## Loadouts
@@ -96,7 +96,7 @@ Sandbox Derby makes the feedback loop explicit and repeatable. Define a task. Ru
 
 ## Status
 
-The CLI porcelain (`derby drive`, `derby coast`, `derby run`) is functional. Drive, coast, and derby modes work with local and remote loadouts. See [vision-statement.md](vision-statement.md) for the full design and [docs/usage.md](docs/usage.md) for detailed usage.
+The CLI (`derby drive`, `derby coast`, `derby scrimmage`) is functional. Drive, coast, and scrimmage modes work with local and remote loadouts. See [vision-statement.md](vision-statement.md) for the full design and [docs/usage.md](docs/usage.md) for detailed usage.
 
 ## Tech
 
