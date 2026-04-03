@@ -19,7 +19,7 @@ func NewRunner(cfg *Config) *Runner {
 // the concurrency limit) and collects results.
 func (r *Runner) Run() ([]SandboxResult, error) {
 	// Check that image exists
-	if err := checkImage(r.config.Image); err != nil {
+	if err := CheckImage(r.config.Image); err != nil {
 		return nil, fmt.Errorf("image %s not found — build it first: %w", r.config.Image, err)
 	}
 
@@ -80,8 +80,8 @@ func (r *Runner) Run() ([]SandboxResult, error) {
 	return results, nil
 }
 
-// checkImage verifies that a Docker image exists locally.
-func checkImage(image string) error {
+// CheckImage verifies that a Docker image exists locally.
+func CheckImage(image string) error {
 	cmd := newCommand("docker", "image", "inspect", image)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
