@@ -64,6 +64,27 @@ A separate tool or agent system that consumes derby output and performs deeper a
 
 _Source: understanding phase — implied by "another tool can do the analysis"_
 
+## Sandbox IDs
+
+Each sandbox in a derby receives a unique numeric identifier (e.g., Sandbox 42) — analogous to the number painted on a soapbox racer. The ID is assigned by the runner at derby configuration time, passed into the container as an environment variable, and used by the agent to identify itself in branch names, PR titles, commits, and issue references. The derby report correlates results by ID. Structural, not cosmetic — branch naming (`sandbox-42`), PR authorship, and result correlation all depend on it. Useful in both scrimmage and formal derby modes.
+
+_Source: integration testing session — immediate, next implementation priority_
+
+## Derby Scrimmage
+
+A formal derby mode where the course is a GitHub repository with an issue backlog rather than a markdown file. The term "scrimmage" refers to the current informal mode (markdown course, quick and lightweight); a full "derby" is the structured version with more ceremony.
+
+In a formal derby, each sandbox:
+1. Gets a sandbox ID and creates a feature branch off main (`sandbox-42`)
+2. Reads the issue backlog and works through it autonomously
+3. For each issue (or group), branches off its feature branch, does the work, and opens a PR back into its feature branch — referencing issues without auto-closing them
+4. When the backlog is exhausted, opens a final PR from its feature branch into main (without merging)
+5. Exits
+
+What the officiant sees on GitHub: main branch untouched, issue backlog still open, N pull requests into main (one per sandbox) each representing a complete attempt at the entire backlog. The repo is fully reusable for subsequent derbies.
+
+_Source: integration testing session — post-sandbox-IDs, significant workstream_
+
 ## Docker SDK Migration
 
 Replacing shell-out-to-`docker` in the Go derby orchestrator with the Docker SDK (`github.com/docker/docker/client`). Provides cleaner programmatic control, better error handling, and eliminates CLI parsing. Natural upgrade path from PoC.
