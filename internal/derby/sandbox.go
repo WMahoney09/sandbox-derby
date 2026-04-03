@@ -12,6 +12,7 @@ import (
 
 // SandboxSpec defines a single sandbox to run.
 type SandboxSpec struct {
+	ID              int
 	Name            string
 	EntryName       string
 	ReplicaNum      int
@@ -40,7 +41,7 @@ type SandboxResult struct {
 func RunSandbox(spec SandboxSpec, outputDir string) SandboxResult {
 	start := time.Now()
 
-	containerName := fmt.Sprintf("derby-%s-%s-%d", spec.Name, spec.EntryName, spec.ReplicaNum)
+	containerName := fmt.Sprintf("derby-%s-%d", spec.Name, spec.ID)
 
 	// Resolve absolute paths
 	absCourse, err := filepath.Abs(spec.CoursePath)
@@ -58,6 +59,7 @@ func RunSandbox(spec SandboxSpec, outputDir string) SandboxResult {
 		"run",
 		"--name", containerName,
 		"--env-file", absEnvFile,
+		"-e", fmt.Sprintf("SANDBOX_ID=%d", spec.ID),
 		"-e", fmt.Sprintf("TARGET_REPO=%s", spec.RepoURL),
 	}
 

@@ -23,22 +23,25 @@ func (r *Runner) Run() ([]SandboxResult, error) {
 		return nil, fmt.Errorf("image %s not found — build it first: %w", r.config.Image, err)
 	}
 
-	// Build sandbox specs
+	// Build sandbox specs with sequential IDs
+	sandboxID := 1
 	var specs []SandboxSpec
 	for _, entry := range r.config.Entries {
 		for replica := 1; replica <= entry.Replicas; replica++ {
 			specs = append(specs, SandboxSpec{
-				Name:        r.config.Name,
-				EntryName:   entry.Name,
-				ReplicaNum:  replica,
-				Image:       r.config.Image,
-				LoadoutPath: entry.Loadout,
-				CoursePath:  entry.Course,
-				RepoURL:     r.config.Workspace.Repo,
+				ID:              sandboxID,
+				Name:            r.config.Name,
+				EntryName:       entry.Name,
+				ReplicaNum:      replica,
+				Image:           r.config.Image,
+				LoadoutPath:     entry.Loadout,
+				CoursePath:      entry.Course,
+				RepoURL:         r.config.Workspace.Repo,
 				EnvFile:         r.config.EnvFile,
 				SkipPermissions: entry.SkipPermissions,
 				Resources:       entry.Resources,
 			})
+			sandboxID++
 		}
 	}
 
@@ -59,18 +62,17 @@ func (r *Runner) Run() ([]SandboxResult, error) {
 			defer wg.Done()
 			defer func() { <-sem }() // release semaphore
 
-			fmt.Printf("  [%d/%d] Starting: %s (replica %d)\n",
-				idx+1, total, s.EntryName, s.ReplicaNum)
+			fmt.Printf("  Sandbox #%d: starting (%s, replica %d)\n",
+				s.ID, s.EntryName, s.ReplicaNum)
 
 			result := RunSandbox(s, "")
 			results[idx] = result
 
 			if result.Error != nil {
-				fmt.Printf("  [%d/%d] Failed: %s (replica %d) — %v\n",
-					idx+1, total, s.EntryName, s.ReplicaNum, result.Error)
+				fmt.Printf("  Sandbox #%d: failed — %v\n", s.ID, result.Error)
 			} else {
-				fmt.Printf("  [%d/%d] Complete: %s (replica %d) — exit %d, %s\n",
-					idx+1, total, s.EntryName, s.ReplicaNum, result.ExitCode, result.Duration.Round(100*1e6))
+				fmt.Printf("  Sandbox #%d: complete — exit %d, %s\n",
+					s.ID, result.ExitCode, result.Duration.Round(100*1e6))
 			}
 		}(i, spec)
 	}

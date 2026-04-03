@@ -8,6 +8,7 @@ import (
 
 // CoastConfig holds the parameters for an autonomous coast run.
 type CoastConfig struct {
+	ID              int
 	Image           string
 	Loadout         string
 	Course          string
@@ -37,6 +38,10 @@ func Coast(cfg CoastConfig) error {
 		"run", "--rm",
 		"--env-file", absEnvFile,
 		"-e", fmt.Sprintf("TARGET_REPO=%s", cfg.Repo),
+	}
+
+	if cfg.ID > 0 {
+		args = append(args, "-e", fmt.Sprintf("SANDBOX_ID=%d", cfg.ID))
 	}
 
 	if cfg.SkipPermissions {

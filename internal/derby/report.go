@@ -30,8 +30,8 @@ func GenerateReport(cfg *Config, results []SandboxResult) (string, error) {
 
 	// Results summary
 	b.WriteString("## Results Summary\n\n")
-	b.WriteString("| Entry | Replica | Exit Code | Duration | Status |\n")
-	b.WriteString("|-------|---------|-----------|----------|--------|\n")
+	b.WriteString("| Sandbox | Entry | Replica | Exit Code | Duration | Status |\n")
+	b.WriteString("|---------|-------|---------|-----------|----------|--------|\n")
 	for _, r := range results {
 		status := "OK"
 		if r.Error != nil {
@@ -39,8 +39,8 @@ func GenerateReport(cfg *Config, results []SandboxResult) (string, error) {
 		} else if r.ExitCode != 0 {
 			status = fmt.Sprintf("Failed (exit %d)", r.ExitCode)
 		}
-		b.WriteString(fmt.Sprintf("| %s | %d | %d | %s | %s |\n",
-			r.Spec.EntryName, r.Spec.ReplicaNum, r.ExitCode,
+		b.WriteString(fmt.Sprintf("| #%d | %s | %d | %d | %s | %s |\n",
+			r.Spec.ID, r.Spec.EntryName, r.Spec.ReplicaNum, r.ExitCode,
 			r.Duration.Round(time.Second), status))
 	}
 	b.WriteString("\n")
@@ -61,7 +61,7 @@ func GenerateReport(cfg *Config, results []SandboxResult) (string, error) {
 		b.WriteString(fmt.Sprintf("**Course:** %s\n\n", entry.Course))
 
 		for _, r := range entryResults {
-			b.WriteString(fmt.Sprintf("#### Replica %d\n\n", r.Spec.ReplicaNum))
+			b.WriteString(fmt.Sprintf("#### Sandbox #%d (Replica %d)\n\n", r.Spec.ID, r.Spec.ReplicaNum))
 			b.WriteString(fmt.Sprintf("- **Exit code:** %d\n", r.ExitCode))
 			b.WriteString(fmt.Sprintf("- **Duration:** %s\n", r.Duration.Round(time.Second)))
 

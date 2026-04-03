@@ -57,6 +57,7 @@ func cmdDrive(args []string) {
 
 func cmdCoast(args []string) {
 	fs := flag.NewFlagSet("coast", flag.ExitOnError)
+	sandboxID := fs.Int("id", 0, "Sandbox ID (optional, shown in banner and prompt)")
 	loadout := fs.String("loadout", "./loadouts/bare", "Path to loadout directory")
 	course := fs.String("course", "", "Path to course file (required)")
 	repo := fs.String("repo", "", "Target repository URL (required)")
@@ -77,6 +78,7 @@ func cmdCoast(args []string) {
 	}
 
 	cfg := derby.CoastConfig{
+		ID:              *sandboxID,
 		Image:           *image,
 		Loadout:         *loadout,
 		Course:          *course,

@@ -10,8 +10,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/entrypoint-common.sh"
 
+SANDBOX_LABEL="Sandbox"
+if [ -n "${SANDBOX_ID:-}" ]; then
+    SANDBOX_LABEL="Sandbox #${SANDBOX_ID}"
+fi
+
 echo "============================================"
-echo "  Sandbox Derby — Drive Mode"
+echo "  ${SANDBOX_LABEL} — Drive Mode"
 echo "============================================"
 echo ""
 echo "  Available tools:"
